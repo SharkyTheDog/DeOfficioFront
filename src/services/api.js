@@ -7,4 +7,14 @@ const api = axios.create({
   }
 })
 
+// Si hay userId guardado, lo ponemos como header por defecto
+try {
+  const storedUserId = localStorage.getItem('userId');
+  if (storedUserId) {
+    api.defaults.headers.common['X-User-Id'] = storedUserId;
+  }
+} catch (e) {
+  // localStorage puede fallar en entornos no-browser, ignoramos
+}
+
 export default api

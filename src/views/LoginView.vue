@@ -64,8 +64,16 @@ const handleLogin = async () => {
       pass_hash: password.value
     });
 
-    localStorage.setItem('usuarioLogueado', JSON.stringify(response.data));
-    router.push('/proyectos');
+    const usuario = response.data;
+    // Guardar usuario completo y el id por separado
+    localStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+    if (usuario && usuario.id) {
+      localStorage.setItem('userId', usuario.id);
+      // Establecer header por defecto para axios
+      try { axios.defaults.headers.common['X-User-Id'] = usuario.id; } catch(e) {}
+    }
+
+    router.push('/mis-pedidos');
   } catch (error) {
     mensajeError.value = error.response?.data || 'Credenciales inválidas';
   } finally {

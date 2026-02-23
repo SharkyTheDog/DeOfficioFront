@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 // IMPORTANTE: Importamos la nueva vista que creaste
 import ProyectosView from '../views/ProyectosView.vue' 
 import LoginView from '../views/LoginView.vue'
+import MisPedidosView from '../views/MisPedidosView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,6 +17,11 @@ const router = createRouter({
       path: '/proyectos', // Esta es la URL que verás en el navegador
       name: 'proyectos',
       component: ProyectosView // Este es el archivo ProyectosView.vue
+    },
+    {
+      path: '/mis-pedidos',
+      name: 'mis-pedidos',
+      component: MisPedidosView
     },
     {
       path: '/registro',
@@ -43,7 +49,7 @@ router.beforeEach((to, from, next) => {
   } 
   // 2. Si ya está logueado e intenta ir al login, mándalo al inicio o proyectos
   else if (estaLogueado && to.name === 'login') {
-    next({ name: 'proyectos' });
+    next({ name: 'mis-pedidos' });
   }
   // 3. En cualquier otro caso, dejar pasar
   else {

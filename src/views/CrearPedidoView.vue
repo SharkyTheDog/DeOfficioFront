@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <div class="form-card">
-      <h2>Publicar Nuevo Pedido</h2>
+      <h2>{{ isEditing ? 'Editar Pedido' : 'Publicar Nuevo Pedido' }}</h2>
       <p class="subtitle">Describe lo que necesitas para tu proyecto de hogar</p>
 
       <form @submit.prevent="handleSubmit">
@@ -27,12 +27,20 @@
         </div>
 
         <div class="form-group">
+          <label>Categoría</label>
+          <select v-model="pedido.categoria_id" required>
+            <option value="" disabled>Selecciona una categoría</option>
+            <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label>Descripción detallada</label>
           <textarea v-model="pedido.descripcion" rows="4" placeholder="Cuéntanos más detalles del trabajo..."></textarea>
         </div>
 
         <button type="submit" class="btn-submit" :disabled="enviando">
-          {{ enviando ? 'Publicando...' : 'Publicar Pedido' }}
+          {{ enviando ? (isEditing ? 'Guardando...' : 'Publicando...') : (isEditing ? 'Guardar cambios' : 'Publicar Pedido') }}
         </button>
       </form>
     </div>
@@ -40,8 +48,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref, onMounted } from 'vue';
+import api from '../services/api';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -50,15 +58,55 @@ const enviando = ref(false);
 // Obtenemos los datos del usuario logueado para sacar su ID
 const usuarioData = JSON.parse(localStorage.getItem('usuarioLogueado'));
 
-const pedido = ref({
-  cliente_id: usuarioData?.id, // Se asigna automáticamente
-  titulo: '',
-  descripcion: '',
-  ubicacion: '',
-  telefono_cont: '',
-  presupuesto_e: null,
-  estado: 'Pendiente' // Estado inicial por defecto
-});
+  const pedido = ref({
+    cliente_id: usuarioData?.id, // Se asigna automáticamente
+    titulo: '',
+    descripcion: '',
+    ubicacion: '',
+    telefono_cont: '',
+    presupuesto_e: null,
+    estado: 'Pendiente', // Estado inicial por defecto
+    categoria_id: null
+  });
+
+  const categorias = ref([]);
+  const isEditing = ref(false);
+  const editId = ref(null);
+
+  onMounted(async () => {
+    try {
+      const res = await api.get('/api/supabase/table/categorias');
+      const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
+      categorias.value = data.map(c => ({ id: String(c.id ?? c.Id), nombre: c.nombre_categoria ?? c.nombre }));
+    } catch (e) {
+      console.error('No se pudieron cargar las categorias:', e);
+    }
+
+    // Si venimos a editar, cargamos pedido desde localStorage
+    try {
+      const editRaw = localStorage.getItem('pedidoEdit');
+      if (editRaw) {
+        const e = JSON.parse(editRaw);
+        editId.value = e.id;
+        isEditing.value = true;
+        // Mapear campos al objeto pedido (categoria_id como string para el select)
+        pedido.value = {
+          cliente_id: e.cliente_id ?? e.clienteId ?? e.user_id,
+          titulo: e.titulo || '',
+          descripcion: e.descripcion || '',
+          ubicacion: e.ubicacion || '',
+          telefono_cont: e.telefono_contacto || e.telefono_cont || e.telefono || '',
+          presupuesto_e: e.presupuesto_estimado || e.presupuesto || null,
+          estado: e.estado || 'Pendiente',
+          categoria_id: e.categoria_id != null ? String(e.categoria_id) : (e.categoriaId != null ? String(e.categoriaId) : null)
+        };
+        console.log('DEBUG: categorias cargadas:', categorias.value);
+        console.log('DEBUG: pedido precargado.categoria_id =', pedido.value.categoria_id);
+      }
+    } catch (e) {
+      console.error('No se pudo cargar pedido para editar:', e);
+    }
+  });
 
 const handleSubmit = async () => {
   const sesion = localStorage.getItem('usuarioLogueado');
@@ -72,16 +120,38 @@ const handleSubmit = async () => {
   // LOG DE SEGURIDAD: Mira la consola del navegador (F12) al hacer clic
   console.log("Datos del usuario logueado:", usuario);
 
-  // Si en el log ves que el id es undefined, prueba cambiar usuario.id por usuario.idUsuario o el nombre que aparezca
-  pedido.value.cliente_id = usuario.id; 
+  // Aseguramos cliente_id tomando primero usuario.id y como fallback localStorage.userId
+  const userId = usuario.id || localStorage.getItem('userId');
+  pedido.value.cliente_id = userId;
 
-  console.log("Objeto que se envía a Java:", JSON.stringify(pedido.value));
+  // Construimos el payload con las claves que el backend espera
+  const payload = {
+    cliente_id: pedido.value.cliente_id,
+    categoria_id: pedido.value.categoria_id,
+    titulo: pedido.value.titulo,
+    descripcion: pedido.value.descripcion,
+    ubicacion: pedido.value.ubicacion,
+    telefono_contacto: pedido.value.telefono_cont,
+    presupuesto_estimado: pedido.value.presupuesto_e,
+    estado: pedido.value.estado
+  };
+
+  console.log("Objeto que se envía a Java:", JSON.stringify(payload));
 
   enviando.value = true;
   try {
-    const response = await axios.post('http://localhost:8080/api/pedidos/crear', pedido.value);
-    alert('¡Pedido publicado con éxito!');
-    router.push('/'); 
+    if (isEditing.value && editId.value) {
+      // PATCH
+      await api.patch(`/api/pedidos/${editId.value}`, JSON.stringify(payload), { headers: { 'Content-Type': 'application/json' } });
+      // limpiar estado de edición
+      localStorage.removeItem('pedidoEdit');
+      alert('¡Pedido actualizado con éxito!');
+      router.push('/mis-pedidos');
+    } else {
+      const response = await api.post('/api/pedidos/crear', payload);
+      alert('¡Pedido publicado con éxito!');
+      router.push('/mis-pedidos');
+    }
   } catch (error) {
     console.error("Error al enviar:", error.response?.data || error.message);
     alert("Error: " + (error.response?.data || "No se pudo conectar con el servidor"));
