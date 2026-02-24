@@ -9,6 +9,7 @@ const usuario = ref(null);
 const verificarSesion = () => {
   const data = localStorage.getItem('usuarioLogueado');
   usuario.value = data ? JSON.parse(data) : null;
+
 };
 
 const logout = () => {
@@ -24,12 +25,12 @@ watch(() => route.path, verificarSesion);
 <template>
   <nav v-if="usuario && route.name !== 'login' && route.name !== 'registro'" class="nav-minimal">
     <div class="nav-content">
-      <div class="brand">CONSTRU<span>APP</span></div>
+      <!-- <div class="brand">CONSTRU<span>APP</span></div> -->
 
       <div class="nav-center">
         <router-link to="/" class="link">Inicio</router-link>
         <router-link to="/proyectos" class="link">Mis Proyectos</router-link>
-        <router-link to="/nuevo-pedido" class="link">+ Nuevo Pedido</router-link>
+        <router-link v-if="usuario && usuario.tipo === 'profesional'" to="/comprar-creditos" class="link">Comprar Créditos</router-link>
       </div>
 
       <div class="nav-right">

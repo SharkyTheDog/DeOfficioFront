@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import LandingPage from '../views/LandingPage.vue'
 import HomeView from '../views/HomeView.vue'
-// IMPORTANTE: Importamos la nueva vista que creaste
-import ProyectosView from '../views/ProyectosView.vue' 
+import ProyectosView from '../views/ProyectosView.vue'
 import LoginView from '../views/LoginView.vue'
 import MisPedidosView from '../views/MisPedidosView.vue'
 
@@ -10,6 +10,11 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: LandingPage
+    },
+    {
+      path: '/home',
       name: 'home',
       component: HomeView
     },
@@ -34,24 +39,34 @@ const router = createRouter({
     component: LoginView
   },
   {
-  path: '/nuevo-pedido',
-  name: 'nuevo-pedido',
-  component: () => import('../views/CrearPedidoView.vue')
-},
+    path: '/comprar-creditos',
+    name: 'comprar-creditos',
+    component: () => import('../views/ComprarCreditosView.vue')
+  },
+  {
+    path: '/nuevo-pedido',
+    name: 'nuevo-pedido',
+    component: () => import('../views/CrearPedidoView.vue')
+  },
   ],
 })
 router.beforeEach((to, from, next) => {
   const estaLogueado = localStorage.getItem('usuarioLogueado');
 
-  // 1. Si el usuario NO está logueado y NO va hacia el login o registro
-  if (!estaLogueado && to.name !== 'login' && to.name !== 'registro') {
-    next({ name: 'login' });
+  // Permitir acceso libre a landing, login y registro
+  if (['landing', 'login', 'registro'].includes(to.name)) {
+    next();
+    return;
+  }
+
+  // Si el usuario NO está logueado y va a otra ruta, redirigir a landing
+  if (!estaLogueado) {
+    next({ name: 'landing' });
   } 
-  // 2. Si ya está logueado e intenta ir al login, mándalo al inicio o proyectos
+  // Si ya está logueado e intenta ir al login, mándalo a mis-pedidos
   else if (estaLogueado && to.name === 'login') {
     next({ name: 'mis-pedidos' });
   }
-  // 3. En cualquier otro caso, dejar pasar
   else {
     next();
   }

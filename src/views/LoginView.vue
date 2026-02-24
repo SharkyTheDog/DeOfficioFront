@@ -1,43 +1,39 @@
 <template>
-  <div class="login-page">
-    <div class="login-card">
-      <div class="login-header">
-        <h1>¡Bienvenido de nuevo!</h1>
-        <p>Ingresa a tu cuenta para gestionar tus proyectos</p>
+  <div class="login-bg">
+    <div class="login-overlay">
+      <div class="login-logo">
+        <img src="/logo.png" alt="Logo" />
       </div>
-
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label>Correo Electrónico</label>
+      <div class="login-card">
+        <h1 class="login-title">Iniciar sesión</h1>
+        <form @submit.prevent="handleLogin" class="login-form">
           <input 
             v-model="email" 
             type="email" 
             required 
-            placeholder="ejemplo@correo.com"
+            placeholder="Correo electrónico"
+            class="login-input"
           />
-        </div>
-
-        <div class="form-group">
-          <label>Contraseña</label>
           <input 
             v-model="password" 
             type="password" 
             required 
-            placeholder="••••••••"
+            placeholder="Contraseña"
+            class="login-input"
           />
-        </div>
-
-        <button type="submit" :disabled="loading" class="btn-login">
-          {{ loading ? 'Iniciando sesión...' : 'Entrar' }}
+          <button type="submit" :disabled="loading" class="btn-login">
+            {{ loading ? 'Iniciando sesión...' : 'Entrar' }}
+          </button>
+        </form>
+        <button class="btn-crear-cuenta" @click="router.push('/registro')">
+          Crear cuenta
         </button>
-      </form>
-
-      <div v-if="mensajeError" class="error-badge">
-        {{ mensajeError }}
-      </div>
-
-      <div class="login-footer">
-        <p>¿No tienes una cuenta? <router-link to="/registro">Regístrate gratis</router-link></p>
+        <div v-if="mensajeError" class="error-badge">
+          {{ mensajeError }}
+        </div>
+        <div class="login-links">
+          <a href="#" @click.prevent>Olvidé mi contraseña</a>
+        </div>
       </div>
     </div>
   </div>
@@ -73,6 +69,7 @@ const handleLogin = async () => {
       try { axios.defaults.headers.common['X-User-Id'] = usuario.id; } catch(e) {}
     }
 
+    // Redirigir siempre a /mis-pedidos después del login
     router.push('/mis-pedidos');
   } catch (error) {
     mensajeError.value = error.response?.data || 'Credenciales inválidas';
@@ -83,106 +80,147 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-.login-page {
-  position: fixed; /* Esto hace que se superponga a todo */
-  top: 0;
-  left: 0;
+.login-bg {
+  min-height: 80vh;
   width: 100vw;
-  height: 100vh;
-  z-index: 999; /* Asegura que esté por encima de cualquier menú rebelde */
+  background: #fdf3ec;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-top: 40px;
+  padding-bottom: 40px;
 }
-
+.login-overlay {
+  width: 100vw;
+  min-height: 80vh;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.login-logo {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.login-logo img {
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
 .login-card {
-  background: white;
-  padding: 40px;
-  border-radius: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  width: 100%;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 36px 28px 28px 28px;
   max-width: 400px;
-}
-
-.login-header { text-align: center; margin-bottom: 30px; }
-.login-header h1 { color: #333; font-size: 24px; margin-bottom: 10px; }
-.login-header p { color: #666; font-size: 14px; }
-
-.form-group { margin-bottom: 20px; }
-.form-group label { display: block; margin-bottom: 8px; color: #444; font-weight: 500; }
-
-input {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  min-width: 260px;
   box-sizing: border-box;
-  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
-
-input:focus {
+.login-title {
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: #fc4a1a;
+  margin-bottom: 22px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+.login-input {
+  width: 100%;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1.5px solid #f7b733;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff8f0;
+  color: #333;
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+  transition: border 0.2s;
+  box-sizing: border-box;
+  display: block;
 }
-
+.login-input:focus {
+  border-color: #fc4a1a;
+}
 .btn-login {
   width: 100%;
-  padding: 12px;
-  background: #667eea;
-  color: white;
+  min-width: 0;
+  padding: 13px 0;
+  background: linear-gradient(90deg, #f7b733 0%, #fc4a1a 100%);
+  color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 1.1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(252,74,26,0.08);
+  transition: background 0.2s;
+  box-sizing: border-box;
+  display: block;
 }
-
-.btn-login:hover { background: #5a6fd6; }
-.btn-login:disabled { background: #ccc; }
-
+.btn-login:hover {
+  background: linear-gradient(90deg, #fc4a1a 0%, #f7b733 100%);
+}
+.btn-login:disabled {
+  background: #eee;
+  color: #aaa;
+  cursor: not-allowed;
+}
 .error-badge {
   background: #fee2e2;
   color: #dc2626;
   padding: 10px;
   border-radius: 8px;
-  margin-top: 20px;
+  margin-top: 18px;
   text-align: center;
   font-size: 14px;
 }
-
-.login-footer { margin-top: 25px; text-align: center; font-size: 14px; color: #666; }
-.login-footer a { color: #667eea; text-decoration: none; font-weight: bold; }
+.login-links {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 15px;
+}
+.login-links a {
+  color: #fc4a1a;
+  text-decoration: underline;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+.login-links a:hover {
+  color: #f7b733;
+}
 </style>
-
 <style scoped>
-.login-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
-.form-group {
-  margin-bottom: 15px;
-}
-input {
+.btn-crear-cuenta {
   width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-}
-button {
-  width: 100%;
-  padding: 10px;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  cursor: pointer;
-}
-.error {
-  color: red;
   margin-top: 10px;
+  margin-bottom: 8px;
+  padding: 12px 0;
+  background: linear-gradient(90deg, #764ba2 0%, #667eea 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.08);
+  transition: background 0.2s;
+  display: block;
+}
+.btn-crear-cuenta:hover {
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
 }
 </style>
