@@ -30,7 +30,8 @@ watch(() => route.path, verificarSesion);
       <div class="nav-center">
         <router-link to="/" class="link">Inicio</router-link>
         <router-link to="/proyectos" class="link">Mis Proyectos</router-link>
-        <router-link v-if="usuario && usuario.tipo === 'profesional'" to="/comprar-creditos" class="link">Comprar Créditos</router-link>
+        <router-link v-if="usuario && (usuario.rol === 'Profesional' || usuario.tipo === 'profesional')" to="/buscar-pedidos" class="link">Buscar Pedidos</router-link>
+        <router-link v-if="usuario && (usuario.rol === 'Profesional' || usuario.tipo === 'profesional')" to="/comprar-creditos" class="link">Comprar Créditos</router-link>
       </div>
 
       <div class="nav-right">

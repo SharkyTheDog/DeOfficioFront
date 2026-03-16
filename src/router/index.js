@@ -8,6 +8,17 @@ import MisPedidosView from '../views/MisPedidosView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+        {
+          path: '/buscar-pedidos',
+          name: 'buscar-pedidos',
+          component: () => import('../views/BuscarPedidosView.vue')
+        },
+        {
+          path: '/detalle-pedido/:id',
+          name: 'detalle-pedido',
+          component: () => import('../views/DetallePedidoView.vue'),
+          props: true
+        },
     {
       path: '/',
       name: 'landing',
@@ -38,11 +49,16 @@ const router = createRouter({
     name: 'login',
     component: LoginView
   },
-  {
-    path: '/comprar-creditos',
-    name: 'comprar-creditos',
-    component: () => import('../views/ComprarCreditosView.vue')
-  },
+    {
+      path: '/proyectos-comprados',
+      name: 'proyectos-comprados',
+      component: () => import('../views/ProyectosCompradosView.vue')
+    },
+    {
+      path: '/comprar-creditos',
+      name: 'comprar-creditos',
+      component: () => import('../views/ComprarCreditosView.vue')
+    },
   {
     path: '/nuevo-pedido',
     name: 'nuevo-pedido',

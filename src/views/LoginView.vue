@@ -69,8 +69,12 @@ const handleLogin = async () => {
       try { axios.defaults.headers.common['X-User-Id'] = usuario.id; } catch(e) {}
     }
 
-    // Redirigir siempre a /mis-pedidos después del login
-    router.push('/mis-pedidos');
+    // Redirigir según el rol del usuario
+    if (usuario.rol === 'Profesional') {
+      router.push('/proyectos-comprados');
+    } else {
+      router.push('/mis-pedidos');
+    }
   } catch (error) {
     mensajeError.value = error.response?.data || 'Credenciales inválidas';
   } finally {
